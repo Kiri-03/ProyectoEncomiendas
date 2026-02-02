@@ -1,25 +1,18 @@
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-from .models import PaymentMethod, PaymentStatus
+from sqlalchemy.ext.asyncio import AsyncSession
+from .dependencies import get_async_session
+from .schemas import PaymentCreate, PaymentRead
+from .models import PaymentStatus
+import uuid
 
 router = APIRouter()
 
-class PaymentCreate(BaseModel):
-    encomienda_id: str
-    amount: float
-    method: PaymentMethod
-    reference: str = None
-
-@router.post("/process")
-async def process_payment(data: PaymentCreate):
-    # Lógica de integración con pasarela (Stripe, Kushki, etc.)
-    # O registro de pago en efectivo en ventanilla
+@router.post("/process", response_model=PaymentRead)
+async def process_payment(data: PaymentCreate, db: AsyncSession = Depends(get_async_session)):
     return {
-        "payment_id": "pay_998877",
+        "id": str(uuid.uuid4()),
+        "encomienda_id": data.encomienda_id,
+        "amount": data.amount,
         "status": PaymentStatus.COMPLETED,
-        "message": "Pago procesado exitosamente"
+        "created_at": datetime.utcnow()
     }
-
-@router.get("/verify/{encomienda_id}")
-async def verify_payment_status(encomienda_id: str):
-    return {"encomienda_id": encomienda_id, "is_paid": True, "status": "completed"}
