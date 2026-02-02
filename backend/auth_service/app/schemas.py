@@ -1,6 +1,5 @@
 from fastapi_users import schemas
 from uuid import UUID
-from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 from .models import UserRole
