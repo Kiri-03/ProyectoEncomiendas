@@ -10,6 +10,7 @@ import UserManagement from "./pages/UserManagement";
 import CreateEncomienda from "./pages/CreateEncomienda";
 import GuideView from "./pages/GuideView";
 import Tracking from "./pages/Tracking";
+import RouteManagement from "./pages/RouteManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/usuarios" element={<UserManagement />} />
+          <Route path="/rutas" element={<RouteManagement />} />
           <Route path="/encomiendas/nueva" element={<CreateEncomienda />} />
           <Route path="/guia/:id" element={<GuideView />} />
           <Route path="*" element={<NotFound />} />
