@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Truck, Shield, Clock, MapPin, ArrowRight, Package, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MadeWithDyad } from '@/components/made-with-dyad';
