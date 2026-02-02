@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi_users import FastAPIUsers
-from .db import User, create_db_and_tables
+from .models import User
 from .schemas import UserRead, UserCreate, UserUpdate
-from .auth import auth_backend, get_user_manager
+from .db import create_db_and_tables, get_async_session
+from .auth import auth_backend, get_user_manager # Asumiendo que auth.py existe con la lógica de JWT y UserManager
 
 app = FastAPI(title="Auth Service - TransLog")
 
