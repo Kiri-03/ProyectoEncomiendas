@@ -1,4 +1,14 @@
-export type UserRole = 'admin' | 'empleado' | 'cliente' | 'conductor';
+export type UserRole = 'administrador' | 'empleado' | 'cliente' | 'conductor';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  nombre: string;
+  apellido: string;
+  telefono: string;
+  rol: UserRole;
+  fecha_registro: string;
+}
 
 export interface Office {
   id: string;
