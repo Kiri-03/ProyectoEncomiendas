@@ -1,27 +1,12 @@
 export type UserRole = 'administrador' | 'empleado' | 'cliente' | 'conductor';
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  nombre: string;
-  apellido: string;
-  telefono: string;
-  rol: UserRole;
-  fecha_registro: string;
-}
+export type EncomiendaStatus = 'en_bodega_origen' | 'en_transito' | 'en_bodega_destino' | 'entregado' | 'devuelto';
 
-export interface Office {
+export interface Bus {
   id: string;
-  name: string;
-  city: string;
-  address: string;
-}
-
-export interface EncomiendaItem {
-  description: string;
-  weight: number;
-  type: 'sobre' | 'paquete' | 'caja' | 'especial';
-  price: number;
+  numeroDisco: string;
+  placa: string;
+  conductor: string;
 }
 
 export interface Encomienda {
@@ -32,9 +17,8 @@ export interface Encomienda {
   receiverPhone: string;
   originOfficeId: string;
   destinationOfficeId: string;
-  items: EncomiendaItem[];
-  subtotal: number;
-  status: 'pendiente' | 'en_camino' | 'entregado';
+  status: EncomiendaStatus;
   busId?: string;
+  subtotal: number;
   createdAt: string;
 }

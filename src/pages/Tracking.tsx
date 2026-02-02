@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Truck, MapPin, Package, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Search, Bus, MapPin, Package, CheckCircle2, ArrowRight } from 'lucide-react';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import StatusBadge from '@/components/StatusBadge';
+import { cn } from '@/lib/utils';
 
 const Tracking = () => {
   const [code, setCode] = useState('');
@@ -14,19 +15,19 @@ const Tracking = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulación de búsqueda
     if (code === '001-000452') {
       setResult({
         code: '001-000452',
-        status: 'en_camino',
-        origin: 'Lima',
-        destination: 'Trujillo',
+        status: 'en_transito',
+        origin: 'Quito (Quitumbe)',
+        destination: 'Guayaquil',
+        bus: 'DISCO 045',
         lastUpdate: '2024-03-20 14:30',
         steps: [
-          { label: 'Recibido en Oficina', date: '2024-03-20 09:00', completed: true },
-          { label: 'En Tránsito', date: '2024-03-20 14:30', completed: true },
-          { label: 'Llegada a Destino', date: '-', completed: false },
-          { label: 'Entregado', date: '-', completed: false },
+          { label: 'Recibido en Terminal Origen', date: '2024-03-20 09:00', completed: true },
+          { label: 'Cargado en Bus (DISCO 045)', date: '2024-03-20 14:30', completed: true },
+          { label: 'Llegada a Terminal Destino', date: '-', completed: false },
+          { label: 'Entregado al Destinatario', date: '-', completed: false },
         ]
       });
     }
@@ -37,7 +38,7 @@ const Tracking = () => {
       <header className="bg-white border-b p-4">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-black italic text-primary flex items-center gap-2">
-            <Truck className="w-8 h-8" /> TRANSLOG
+            <Bus className="w-8 h-8" /> TRANSLOG
           </h1>
           <Button variant="ghost" onClick={() => window.location.href = '/'}>Inicio</Button>
         </div>
@@ -46,8 +47,8 @@ const Tracking = () => {
       <main className="flex-1 p-6 flex flex-col items-center justify-center">
         <div className="w-full max-w-2xl space-y-8">
           <div className="text-center space-y-2">
-            <h2 className="text-4xl font-extrabold text-slate-900">Rastrea tu Envío</h2>
-            <p className="text-slate-500">Ingresa tu código de seguimiento para conocer el estado de tu encomienda.</p>
+            <h2 className="text-4xl font-extrabold text-slate-900">Rastrea tu Encomienda</h2>
+            <p className="text-slate-500">Ingresa el número de guía para saber en qué bus viaja tu paquete.</p>
           </div>
 
           <form onSubmit={handleSearch} className="flex gap-2">
@@ -68,7 +69,7 @@ const Tracking = () => {
               <CardHeader className="bg-primary text-white p-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-primary-foreground/70 text-xs font-bold uppercase tracking-wider">Código de Seguimiento</p>
+                    <p className="text-primary-foreground/70 text-xs font-bold uppercase tracking-wider">Guía de Remisión</p>
                     <CardTitle className="text-2xl font-mono">{result.code}</CardTitle>
                   </div>
                   <StatusBadge status={result.status} className="bg-white/20 border-white/30 text-white" />
@@ -79,16 +80,30 @@ const Tracking = () => {
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-slate-100 rounded-lg"><MapPin className="w-5 h-5 text-slate-600" /></div>
                     <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase">Origen</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase">Terminal Origen</p>
                       <p className="font-bold text-slate-800">{result.origin}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-slate-100 rounded-lg"><ArrowRight className="w-5 h-5 text-slate-600" /></div>
                     <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase">Destino</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase">Terminal Destino</p>
                       <p className="font-bold text-slate-800">{result.destination}</p>
                     </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Bus className="text-blue-600 w-6 h-6" />
+                    <div>
+                      <p className="text-[10px] font-bold text-blue-400 uppercase">Transporte Actual</p>
+                      <p className="font-bold text-blue-900">{result.bus}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-blue-400 uppercase">Última Actualización</p>
+                    <p className="text-xs font-medium text-blue-800">{result.lastUpdate}</p>
                   </div>
                 </div>
 
