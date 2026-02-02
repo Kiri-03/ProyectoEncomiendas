@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import CreateEncomienda from "./pages/CreateEncomienda";
 import GuideView from "./pages/GuideView";
+import Tracking from "./pages/Tracking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,6 +20,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/rastreo" element={<Tracking />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/encomiendas/nueva" element={<CreateEncomienda />} />
           <Route path="/guia/:id" element={<GuideView />} />
