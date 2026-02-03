@@ -1,17 +1,22 @@
+"use client";
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { UserRole } from '@/types/encomienda';
 
 interface RoleGuardProps {
   children: React.ReactNode;
   allowedRoles: UserRole[];
-  userRole: UserRole;
 }
 
-const RoleGuard = ({ children, allowedRoles, userRole }: RoleGuardProps) => {
-  if (!allowedRoles.includes(userRole)) {
+const RoleGuard = ({ children, allowedRoles }: RoleGuardProps) => {
+  const { user } = useAuth();
+
+  if (!user || !allowedRoles.includes(user.rol)) {
     return <Navigate to="/unauthorized" replace />;
   }
+
   return <>{children}</>;
 };
 

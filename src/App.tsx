@@ -2,8 +2,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import AuthGuard from "./components/AuthGuard";
+import RoleGuard from "./components/RoleGuard";
+
 import Index from "./pages/Index";
+import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserManagement from "./pages/UserManagement";
@@ -17,23 +22,67 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/rastreo" element={<Tracking />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/usuarios" element={<UserManagement />} />
-          <Route path="/rutas" element={<RouteManagement />} />
-          <Route path="/encomiendas/nueva" element={<CreateEncomienda />} />
-          <Route path="/guia/:id" element={<GuideView />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Rutas Públicas */}
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/rastreo" element={<Tracking />} />
+
+            {/* Rutas Protegidas - Empleado & Admin */}
+            <Route path="/dashboard" element={
+              <AuthGuard>
+                <Dashboard />
+              </AuthGuard>
+            } />
+            
+            <Route path="/encomiendas/nueva" element={
+              <AuthGuard>
+                <CreateEncomienda />
+              </AuthGuard>
+            } />
+            
+            <Route path="/guia/:id" element={
+              <AuthGuard>
+                <GuideView />
+              </AuthGuard>
+            } />
+
+            {/* Rutas Solo Admin */}
+            <Route path="/admin" element={
+              <AuthGuard>
+                <RoleGuard allowedRoles={['administrador']}>
+                  <AdminDashboard />
+                </RoleGuard>
+              </AuthGuard>
+            } />
+            
+            <Route path="/usuarios" element={
+              <AuthGuard>
+                <RoleGuard allowedRoles={['administrador']}>
+                  <UserManagement />
+                </RoleGuard>
+              </AuthGuard>
+            } />
+            
+            <Route path="/rutas" element={
+              <AuthGuard>
+                <RoleGuard allowedRoles={['administrador']}>
+                  <RouteManagement />
+                </RoleGuard>
+              </AuthGuard>
+            } />
+
+            <Route path="/unauthorized" element={<div className="p-20 text-center">No tienes permiso para ver esta página.</div>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
