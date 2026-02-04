@@ -1,14 +1,35 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Filter, Download } from 'lucide-react';
+import { Plus, Search, Filter, Download, Loader2 } from 'lucide-react';
 import EncomiendaTable from '@/components/EncomiendaTable';
 import { Link } from 'react-router-dom';
+import { apiClient } from '@/lib/api-client';
+import { showError } from '@/utils/toast';
 
 const EncomiendaManagement = () => {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const encomiendas = await apiClient.encomiendas.getAll();
+      setData(encomiendas);
+    } catch (err) {
+      showError("Error al cargar el listado de encomiendas.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
     <Layout>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -38,7 +59,13 @@ const EncomiendaManagement = () => {
         </Button>
       </div>
 
-      <EncomiendaTable />
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <EncomiendaTable data={data} onRefresh={fetchData} />
+      )}
     </Layout>
   );
 };

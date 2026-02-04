@@ -25,17 +25,16 @@ import { showSuccess, showError } from '@/utils/toast';
 import { apiClient } from '@/lib/api-client';
 
 interface EncomiendaTableProps {
-  data: any[];
+  data?: any[]; // Hecho opcional
   onRefresh?: () => void;
 }
 
-const EncomiendaTable = ({ data, onRefresh }: EncomiendaTableProps) => {
+const EncomiendaTable = ({ data = [], onRefresh }: EncomiendaTableProps) => {
   const navigate = useNavigate();
 
   const handleAction = async (action: string, id: string) => {
     try {
       if (action === 'view') {
-        // Al navegar usamos el ID único (UUID) que el backend validará
         navigate(`/guia/${id}`);
       }
       if (action === 'print') showSuccess("Generando ticket de impresión...");
@@ -64,7 +63,7 @@ const EncomiendaTable = ({ data, onRefresh }: EncomiendaTableProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.length === 0 ? (
+            {!data || data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-10 text-slate-400">
                   No se encontraron encomiendas registradas.
