@@ -10,7 +10,6 @@ import {
   LogOut, 
   ShieldCheck, 
   Menu, 
-  X,
   Map
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -54,9 +53,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </Link>
       )}
       
-      <Link to="/encomiendas/nueva" onClick={() => setIsMobileMenuOpen(false)}>
-        <Button variant="ghost" className={cn("w-full justify-start gap-3", isActive('/encomiendas/nueva') && "bg-primary/10 text-primary font-bold")}>
-          <Package className="w-5 h-5" /> Nueva Encomienda
+      <Link to="/encomiendas" onClick={() => setIsMobileMenuOpen(false)}>
+        <Button variant="ghost" className={cn("w-full justify-start gap-3", isActive('/encomiendas') && "bg-primary/10 text-primary font-bold")}>
+          <Package className="w-5 h-5" /> Gestión Encomiendas
         </Button>
       </Link>
     </div>
@@ -69,7 +68,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
-      {/* Mobile Header */}
       <header className="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50">
         <h1 className="text-xl font-black italic text-primary flex items-center gap-2">
           <Truck className="w-6 h-6" /> TransLog
@@ -98,7 +96,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </Sheet>
       </header>
 
-      {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col fixed h-full">
         <div className="p-6">
           <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
@@ -106,28 +103,20 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             TransLog
           </h1>
         </div>
-
         <nav className="flex-1 px-4">
           <NavItems />
         </nav>
-
         <div className="p-4 border-t border-slate-100">
           <div className="mb-4 px-4">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sesión como</p>
             <p className="text-sm font-bold text-slate-700 capitalize">{user?.rol}</p>
-            <p className="text-xs text-slate-500 truncate">{user?.nombre}</p>
           </div>
-          <Button 
-            variant="outline" 
-            className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50"
-            onClick={handleLogout}
-          >
+          <Button variant="outline" className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleLogout}>
             <LogOut className="w-5 h-5" /> Cerrar Sesión
           </Button>
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 md:ml-64 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
           {children}
