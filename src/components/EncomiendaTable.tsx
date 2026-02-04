@@ -10,7 +10,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Eye, MoreHorizontal, Printer, Truck, FileText } from 'lucide-react';
+import { Eye, MoreHorizontal, Printer, Truck } from 'lucide-react';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -21,21 +21,32 @@ import {
 } from '@/components/ui/dropdown-menu';
 import StatusBadge from './StatusBadge';
 import { useNavigate } from 'react-router-dom';
-import { showSuccess } from '@/utils/toast';
+import { showSuccess, showError } from '@/utils/toast';
+import { apiClient } from '@/lib/api-client';
 
-const MOCK_DATA = [
-  { id: "1", trackingCode: "001-000452", sender: "Juan Pérez", receiver: "María García", destination: "Trujillo", status: "pendiente" as const, date: "2024-03-20", total: 17.50 },
-  { id: "2", trackingCode: "001-000453", sender: "Carlos Ruiz", receiver: "Ana Torres", destination: "Arequipa", status: "en_camino" as const, date: "2024-03-19", total: 25.00 },
-  { id: "3", trackingCode: "001-000454", sender: "Roberto Lima", receiver: "Elena Paz", destination: "Cusco", status: "entregado" as const, date: "2024-03-18", total: 12.00 }
-];
+interface EncomiendaTableProps {
+  data: any[];
+  onRefresh?: () => void;
+}
 
-const EncomiendaTable = () => {
+const EncomiendaTable = ({ data, onRefresh }: EncomiendaTableProps) => {
   const navigate = useNavigate();
 
-  const handleAction = (action: string, id: string) => {
-    if (action === 'view') navigate(`/guia/${id}`);
-    if (action === 'print') showSuccess("Enviando a la impresora...");
-    if (action === 'status') showSuccess("Estado actualizado correctamente");
+  const handleAction = async (action: string, id: string) => {
+    try {
+      if (action === 'view') {
+        // Al navegar usamos el ID único (UUID) que el backend validará
+        navigate(`/guia/${id}`);
+      }
+      if (action === 'print') showSuccess("Generando ticket de impresión...");
+      if (action === 'status') {
+        await apiClient.encomiendas.updateStatus(id, 'en_transito');
+        showSuccess("Estado actualizado a En Tránsito");
+        onRefresh?.();
+      }
+    } catch (err) {
+      showError("No tienes permiso para realizar esta acción.");
+    }
   };
 
   return (
@@ -53,39 +64,47 @@ const EncomiendaTable = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {MOCK_DATA.map((item) => (
-              <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                <TableCell className="font-mono font-medium text-primary">{item.trackingCode}</TableCell>
-                <TableCell className="whitespace-nowrap">{item.sender}</TableCell>
-                <TableCell className="whitespace-nowrap">{item.receiver}</TableCell>
-                <TableCell>
-                  <StatusBadge status={item.status === 'pendiente' ? 'en_bodega_origen' : item.status === 'en_camino' ? 'en_transito' : 'entregado'} />
-                </TableCell>
-                <TableCell className="text-right font-bold">${item.total.toFixed(2)}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => handleAction('view', item.id)}>
-                        <Eye className="mr-2 h-4 w-4" /> Ver Guía
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAction('print', item.id)}>
-                        <Printer className="mr-2 h-4 w-4" /> Imprimir Ticket
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-blue-600" onClick={() => handleAction('status', item.id)}>
-                        <Truck className="mr-2 h-4 w-4" /> Actualizar Estado
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-10 text-slate-400">
+                  No se encontraron encomiendas registradas.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              data.map((item) => (
+                <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                  <TableCell className="font-mono font-medium text-primary">{item.tracking_code}</TableCell>
+                  <TableCell className="whitespace-nowrap">{item.sender_name || 'N/A'}</TableCell>
+                  <TableCell className="whitespace-nowrap">{item.receiver_name}</TableCell>
+                  <TableCell>
+                    <StatusBadge status={item.status} />
+                  </TableCell>
+                  <TableCell className="text-right font-bold">${item.subtotal?.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => handleAction('view', item.id)}>
+                          <Eye className="mr-2 h-4 w-4" /> Ver Guía
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleAction('print', item.id)}>
+                          <Printer className="mr-2 h-4 w-4" /> Imprimir Ticket
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-blue-600" onClick={() => handleAction('status', item.id)}>
+                          <Truck className="mr-2 h-4 w-4" /> Despachar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

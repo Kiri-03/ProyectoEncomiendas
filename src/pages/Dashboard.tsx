@@ -1,28 +1,59 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, Truck, CheckCircle, Clock, Plus, Search } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Package, Truck, CheckCircle, Clock, Plus, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import EncomiendaTable from '@/components/EncomiendaTable';
 import { Link } from 'react-router-dom';
+import { apiClient } from '@/lib/api-client';
+import { showError } from '@/utils/toast';
 
 const Dashboard = () => {
-  const stats = [
-    { title: 'Pendientes', value: '12', icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50' },
-    { title: 'En Camino', value: '08', icon: Truck, color: 'text-blue-500', bg: 'bg-blue-50' },
-    { title: 'Entregados', value: '45', icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-    { title: 'Total Hoy', value: '65', icon: Package, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-  ];
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([
+    { title: 'Pendientes', value: '0', icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50' },
+    { title: 'En Camino', value: '0', icon: Truck, color: 'text-blue-500', bg: 'bg-blue-50' },
+    { title: 'Entregados', value: '0', icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+    { title: 'Total Hoy', value: '0', icon: Package, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+  ]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const encomiendas = await apiClient.encomiendas.getAll();
+        setData(encomiendas);
+        
+        // Calcular stats reales
+        const pending = encomiendas.filter((e: any) => e.status === 'en_bodega_origen').length;
+        const transit = encomiendas.filter((e: any) => e.status === 'en_transito').length;
+        const delivered = encomiendas.filter((e: any) => e.status === 'entregado').length;
+
+        setStats([
+          { title: 'Pendientes', value: pending.toString(), icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50' },
+          { title: 'En Camino', value: transit.toString(), icon: Truck, color: 'text-blue-500', bg: 'bg-blue-50' },
+          { title: 'Entregados', value: delivered.toString(), icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+          { title: 'Total Hoy', value: encomiendas.length.toString(), icon: Package, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+        ]);
+      } catch (err) {
+        showError("No se pudieron cargar los datos del servidor.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <Layout>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h2 className="text-3xl font-bold text-slate-800">Panel de Control</h2>
-          <p className="text-slate-500">Gestión de encomiendas y envíos en tiempo real.</p>
+          <p className="text-slate-500">Gestión de encomiendas en tiempo real desde el servidor.</p>
         </div>
         <Link to="/encomiendas/nueva">
           <Button className="gap-2 shadow-lg shadow-primary/20">
@@ -58,7 +89,11 @@ const Dashboard = () => {
           </div>
         </div>
         
-        <EncomiendaTable />
+        {loading ? (
+          <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+        ) : (
+          <EncomiendaTable data={data} />
+        )}
       </div>
     </Layout>
   );
