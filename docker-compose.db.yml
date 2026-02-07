@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  postgres_db:
+    image: postgres:15-alpine
+    container_name: translog_postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_databases.sql:/docker-entrypoint-initdb.d/init_databases.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - translog-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  translog-network:
+    external: true
+
+volumes:
+  postgres_data:

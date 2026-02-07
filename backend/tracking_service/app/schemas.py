@@ -21,3 +21,10 @@ class RouteRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+class TrackingStatus(BaseModel):
+    tracking_code: str
+    status: str
+    location: str
+    timestamp: datetime
+    message: str

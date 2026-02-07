@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    container_name: translog_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Apunta al Gateway expuesto en el host (navegador del usuario)
+      - VITE_API_URL=http://localhost:8000
+    networks:
+      - translog-network
+
+networks:
+  translog-network:
+    external: true

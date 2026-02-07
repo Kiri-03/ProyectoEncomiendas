@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,10 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { showSuccess, showError } from '@/utils/toast';
 import { Package, User, MapPin, Bus as BusIcon, Calculator, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '@/lib/api-client';
 
 const CreateEncomienda = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [availableBuses, setAvailableBuses] = useState<any[]>([]);
+  const [terminals, setTerminals] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     remitente: '',
     cedula: '',
@@ -26,9 +29,35 @@ const CreateEncomienda = () => {
     bus: ''
   });
 
+  useEffect(() => {
+    // Cargar buses disponibles al iniciar o llegar al paso 4
+    const fetchTerminals = async () => {
+      try {
+        const data = await apiClient.encomiendas.getTerminals();
+        setTerminals(data);
+      } catch (error) {
+        console.error("Error loading terminals", error);
+      }
+    };
+    const fetchBuses = async () => {
+      try {
+        const data = await apiClient.tracking.getBuses();
+        setAvailableBuses(data);
+      } catch (error) {
+        console.error("Error loading buses", error);
+      }
+    };
+    fetchBuses();
+    fetchTerminals();
+  }, []);
+
   const validateStep = () => {
     if (step === 1) {
-      return formData.remitente && formData.cedula && formData.destinatario && formData.telefono;
+      const cedulaValid = /^\d{10}$/.test(formData.cedula);
+      const telefonoValid = /^\d{10}$/.test(formData.telefono);
+      if (!cedulaValid) showError("La cédula debe tener 10 dígitos numéricos.");
+      if (!telefonoValid) showError("El teléfono debe tener 10 dígitos numéricos.");
+      return formData.remitente && cedulaValid && formData.destinatario && telefonoValid;
     }
     if (step === 2) {
       return formData.descripcion && formData.peso && formData.tipo;
@@ -52,10 +81,29 @@ const CreateEncomienda = () => {
 
   const handlePrev = () => setStep(step - 1);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateStep()) {
-      showSuccess("Encomienda registrada exitosamente");
-      navigate('/dashboard');
+      try {
+        const payload = {
+          remitente_nombre: formData.remitente,
+          destinatario_nombre: formData.destinatario,
+          destino_direccion: formData.destino,
+          peso: parseFloat(formData.peso),
+          tipo: formData.tipo
+        };
+
+        const response = await apiClient.encomiendas.create(payload);
+        
+        // Si se seleccionó bus, intentar despachar (opcional)
+        if (formData.bus && response.id) {
+           // Aquí iría la lógica de despacho si el backend lo soporta en este flujo
+        }
+
+        showSuccess(`Encomienda registrada: ${response.tracking_code}`);
+        navigate('/dashboard');
+      } catch (err) {
+        showError("Error al registrar la encomienda en el servidor.");
+      }
     } else {
       showError("Faltan datos por completar.");
     }
@@ -95,7 +143,12 @@ const CreateEncomienda = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Cédula / RUC *</Label>
-                  <Input value={formData.cedula} onChange={(e) => updateField('cedula', e.target.value)} placeholder="Documento" />
+                  <Input 
+                    value={formData.cedula} 
+                    onChange={(e) => updateField('cedula', e.target.value.replace(/\D/g, '').slice(0, 10))} 
+                    placeholder="10 dígitos" 
+                    maxLength={10}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Destinatario *</Label>
@@ -103,7 +156,12 @@ const CreateEncomienda = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Teléfono Destinatario *</Label>
-                  <Input value={formData.telefono} onChange={(e) => updateField('telefono', e.target.value)} placeholder="0987654321" />
+                  <Input 
+                    value={formData.telefono} 
+                    onChange={(e) => updateField('telefono', e.target.value.replace(/\D/g, '').slice(0, 10))} 
+                    placeholder="0987654321" 
+                    maxLength={10}
+                  />
                 </div>
               </div>
             )}
@@ -146,9 +204,9 @@ const CreateEncomienda = () => {
                   <Select onValueChange={(v) => updateField('destino', v)}>
                     <SelectTrigger><SelectValue placeholder="Seleccione terminal" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="guayaquil">Terminal Terrestre Guayaquil</SelectItem>
-                      <SelectItem value="cuenca">Terminal Terrestre Cuenca</SelectItem>
-                      <SelectItem value="manta">Terminal Terrestre Manta</SelectItem>
+                      {terminals.map((t) => (
+                        <SelectItem key={t.id} value={t.nombre}>{t.nombre}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -159,21 +217,26 @@ const CreateEncomienda = () => {
               <div className="space-y-4">
                 <Label>Buses con Salida Próxima *</Label>
                 <div className="space-y-3">
-                  <div 
-                    onClick={() => updateField('bus', 'b1')}
-                    className={`p-4 border-2 rounded-xl flex justify-between items-center cursor-pointer transition-all ${formData.bus === 'b1' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-slate-300'}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-lg ${formData.bus === 'b1' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'}`}>
-                        <BusIcon className="w-6 h-6" />
+                  {availableBuses.length > 0 ? availableBuses.map((bus) => (
+                    <div 
+                      key={bus.id}
+                      onClick={() => updateField('bus', bus.id)}
+                      className={`p-4 border-2 rounded-xl flex justify-between items-center cursor-pointer transition-all ${formData.bus === bus.id ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-slate-300'}`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-lg ${formData.bus === bus.id ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'}`}>
+                          <BusIcon className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-lg">DISCO {bus.numero_disco}</p>
+                          <p className="text-sm text-slate-500">Placa: {bus.placa} | Salida: Próxima</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-lg">DISCO 045</p>
-                        <p className="text-sm text-slate-500">Placa: ABC-1234 | Salida: 18:30 PM</p>
-                      </div>
+                      {formData.bus === bus.id && <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs">✓</div>}
                     </div>
-                    {formData.bus === 'b1' && <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs">✓</div>}
-                  </div>
+                  )) : (
+                    <p className="text-slate-500 text-center py-4">No hay buses disponibles en este momento.</p>
+                  )}
                 </div>
               </div>
             )}

@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  api_gateway:
+    build: ./backend/api_gateway
+    container_name: translog_gateway
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    environment:
+      - AUTH_SERVICE_URL=http://auth_service:8000
+      - ENCOMIENDA_SERVICE_URL=http://encomienda_service:8000
+      - TRACKING_SERVICE_URL=http://tracking_service:8000
+      - PAYMENT_SERVICE_URL=http://payment_service:8000
+    volumes:
+      - ./backend/api_gateway:/app
+    networks:
+      - translog-network
+    depends_on:
+      - auth_service
+      - encomienda_service
+      - tracking_service
+      - payment_service
+
+  auth_service:
+    build: ./backend/auth_service
+    container_name: translog_auth
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    environment:
+      - AUTH_DATABASE_URL=postgresql+asyncpg://user:pass@postgres_db/auth_db
+    volumes:
+      - ./backend/auth_service:/app
+    networks:
+      - translog-network
+
+  encomienda_service:
+    build: ./backend/encomienda_service
+    container_name: translog_encomienda
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    environment:
+      - ENCOMIENDA_DATABASE_URL=postgresql+asyncpg://user:pass@postgres_db/encomienda_db
+    volumes:
+      - ./backend/encomienda_service:/app
+    networks:
+      - translog-network
+
+  tracking_service:
+    build: ./backend/tracking_service
+    container_name: translog_tracking
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    environment:
+      - TRACKING_DATABASE_URL=postgresql+asyncpg://user:pass@postgres_db/tracking_db
+    volumes:
+      - ./backend/tracking_service:/app
+    networks:
+      - translog-network
+
+  payment_service:
+    build: ./backend/payment_service
+    container_name: translog_payment
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    environment:
+      - PAYMENT_DATABASE_URL=postgresql+asyncpg://user:pass@postgres_db/payment_db
+    volumes:
+      - ./backend/payment_service:/app
+    networks:
+      - translog-network
+
+networks:
+  translog-network:
+    external: true

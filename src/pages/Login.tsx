@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Bus, Lock, User, Loader2 } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
+import { apiClient } from '@/lib/api-client';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -21,31 +22,42 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulación de llamada al backend auth_service
-    setTimeout(() => {
-      if (email === 'admin@translog.com' && password === 'admin123') {
-        login({
-          id: '1',
-          nombre: 'Admin TransLog',
-          rol: 'administrador',
-          token: 'fake-jwt-token'
-        });
-        showSuccess("Bienvenido, Administrador");
-        navigate('/admin');
-      } else if (email === 'empleado@translog.com' && password === 'user123') {
-        login({
-          id: '2',
-          nombre: 'Juan Empleado',
-          rol: 'empleado',
-          token: 'fake-jwt-token'
-        });
-        showSuccess("Sesión iniciada correctamente");
-        navigate('/dashboard');
-      } else {
-        showError("Credenciales inválidas. Use admin@translog.com o empleado@translog.com");
-      }
+    try {
+      // 1. Obtener Token (Login)
+      // fastapi-users espera 'username' y 'password' en form-data
+      const loginResponse = await apiClient.auth.login({
+        username: email,
+        password: password
+      });
+      
+      const token = loginResponse.access_token;
+      if (!token) throw new Error("No se recibió el token de acceso");
+
+      // Guardamos temporalmente para que la siguiente petición (getMe) tenga el token
+      localStorage.setItem('translog_user', JSON.stringify({ token }));
+
+      // 2. Obtener datos del usuario
+      const user = await apiClient.auth.getMe();
+
+      // 3. Actualizar contexto global
+      login({
+        id: user.id,
+        nombre: user.nombre ? `${user.nombre} ${user.apellido || ''}`.trim() : user.email,
+        rol: user.rol,
+        token: token
+      });
+
+      showSuccess(`Bienvenido, ${user.nombre || 'Usuario'}`);
+      navigate('/dashboard');
+
+    } catch (err: any) {
+      console.error(err);
+      showError("Credenciales inválidas o error de conexión.");
+      // Limpiar si falló algo a medias
+      localStorage.removeItem('translog_user');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

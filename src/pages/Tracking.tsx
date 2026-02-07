@@ -1,35 +1,32 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Bus, MapPin, Package, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Search, Bus, Loader2 } from 'lucide-react';
 import { MadeWithDyad } from '@/components/made-with-dyad';
-import StatusBadge from '@/components/StatusBadge';
-import { cn } from '@/lib/utils';
+import TrackingResult from '@/components/tracking/TrackingResult';
+import { apiClient } from '@/lib/api-client';
+import { showError } from '@/utils/toast';
 
 const Tracking = () => {
   const [code, setCode] = useState('');
   const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (code === '001-000452') {
-      setResult({
-        code: '001-000452',
-        status: 'en_transito',
-        origin: 'Quito (Quitumbe)',
-        destination: 'Guayaquil',
-        bus: 'DISCO 045',
-        lastUpdate: '2024-03-20 14:30',
-        steps: [
-          { label: 'Recibido en Terminal Origen', date: '2024-03-20 09:00', completed: true },
-          { label: 'Cargado en Bus (DISCO 045)', date: '2024-03-20 14:30', completed: true },
-          { label: 'Llegada a Terminal Destino', date: '-', completed: false },
-          { label: 'Entregado al Destinatario', date: '-', completed: false },
-        ]
-      });
+    if (!code) return;
+    
+    setLoading(true);
+    try {
+      const data = await apiClient.tracking.getHistory(code);
+      setResult(data);
+    } catch (err) {
+      showError("No se encontró información para el código proporcionado.");
+      setResult(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,74 +58,12 @@ const Tracking = () => {
                 className="pl-12 h-14 text-lg shadow-sm border-slate-200 focus:ring-primary"
               />
             </div>
-            <Button type="submit" size="lg" className="h-14 px-8 font-bold">Rastrear</Button>
+            <Button type="submit" size="lg" className="h-14 px-8 font-bold" disabled={loading}>
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Rastrear"}
+            </Button>
           </form>
 
-          {result && (
-            <Card className="border-none shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <CardHeader className="bg-primary text-white p-6">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-primary-foreground/70 text-xs font-bold uppercase tracking-wider">Guía de Remisión</p>
-                    <CardTitle className="text-2xl font-mono">{result.code}</CardTitle>
-                  </div>
-                  <StatusBadge status={result.status} className="bg-white/20 border-white/30 text-white" />
-                </div>
-              </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-slate-100 rounded-lg"><MapPin className="w-5 h-5 text-slate-600" /></div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase">Terminal Origen</p>
-                      <p className="font-bold text-slate-800">{result.origin}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-slate-100 rounded-lg"><ArrowRight className="w-5 h-5 text-slate-600" /></div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase">Terminal Destino</p>
-                      <p className="font-bold text-slate-800">{result.destination}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Bus className="text-blue-600 w-6 h-6" />
-                    <div>
-                      <p className="text-[10px] font-bold text-blue-400 uppercase">Transporte Actual</p>
-                      <p className="font-bold text-blue-900">{result.bus}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-blue-400 uppercase">Última Actualización</p>
-                    <p className="text-xs font-medium text-blue-800">{result.lastUpdate}</p>
-                  </div>
-                </div>
-
-                <div className="relative space-y-6">
-                  <div className="absolute left-[19px] top-2 bottom-2 w-0.5 bg-slate-100"></div>
-                  {result.steps.map((step: any, i: number) => (
-                    <div key={i} className="flex items-start gap-4 relative z-10">
-                      <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-sm",
-                        step.completed ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400"
-                      )}>
-                        {step.completed ? <CheckCircle2 className="w-5 h-5" /> : <Package className="w-5 h-5" />}
-                      </div>
-                      <div className="flex-1 pt-1">
-                        <p className={cn("font-bold", step.completed ? "text-slate-900" : "text-slate-400")}>
-                          {step.label}
-                        </p>
-                        <p className="text-xs text-slate-500">{step.date}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <TrackingResult result={result} />
         </div>
       </main>
       <MadeWithDyad />

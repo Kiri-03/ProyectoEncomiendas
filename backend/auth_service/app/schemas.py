@@ -1,27 +1,21 @@
-from fastapi_users import schemas
-from uuid import UUID
-from datetime import datetime
+import uuid
 from typing import Optional
-from .models import UserRole
+from fastapi_users import schemas
 
-class UserRead(schemas.BaseUser[UUID]):
-    nombre: str
-    apellido: str
-    telefono: str
-    rol: UserRole
-    fecha_registro: datetime
-
-    class Config:
-        from_attributes = True
+class UserRead(schemas.BaseUser[uuid.UUID]):
+    nombre: Optional[str]
+    apellido: Optional[str]
+    rol: str
+    telefono: Optional[str]
 
 class UserCreate(schemas.BaseUserCreate):
     nombre: str
     apellido: str
-    telefono: str
-    rol: Optional[UserRole] = UserRole.CLIENT
+    rol: str = "empleado"
+    telefono: Optional[str]
 
 class UserUpdate(schemas.BaseUserUpdate):
-    nombre: Optional[str] = None
-    apellido: Optional[str] = None
-    telefono: Optional[str] = None
-    rol: Optional[UserRole] = None
+    nombre: Optional[str]
+    apellido: Optional[str]
+    rol: Optional[str]
+    telefono: Optional[str]

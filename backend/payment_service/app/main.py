@@ -3,7 +3,7 @@ from .routes import router
 
 app = FastAPI(title="Payment Service - TransLog")
 
-app.include_router(router, prefix="/payments", tags=["payments"])
+app.include_router(router, tags=["payments"])
 
 @app.get("/health")
 async def health():

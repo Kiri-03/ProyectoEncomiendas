@@ -5,6 +5,6 @@ app = FastAPI(title="Encomienda Service - TransLog")
 
 app.include_router(router, prefix="/encomiendas", tags=["encomiendas"])
 
-@router.get("/health")
+@app.get("/health")
 async def health():
     return {"status": "ok", "service": "encomienda-service"}
