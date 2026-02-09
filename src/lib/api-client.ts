@@ -48,6 +48,15 @@ export const apiClient = {
       const res = await fetch(`${BASE_URL}/encomiendas/${code}`, { headers: getHeaders() });
       if (!res.ok) throw new Error('Error fetching encomienda');
       return res.json();
+    },
+    update: async (id: string, data: any) => {
+      const res = await fetch(`${BASE_URL}/encomiendas/${id}`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Error updating encomienda');
+      return res.json();
     }
   },
   tracking: {
@@ -59,6 +68,11 @@ export const apiClient = {
     getRutas: async () => {
       const res = await fetch(`${BASE_URL}/tracking/rutas`, { headers: getHeaders() });
       if (!res.ok) throw new Error('Error fetching rutas');
+      return res.json();
+    },
+    getRuta: async (id: string) => {
+      const res = await fetch(`${BASE_URL}/tracking/rutas/${id}`, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Error fetching ruta');
       return res.json();
     },
     createRuta: async (data: any) => {
@@ -85,6 +99,43 @@ export const apiClient = {
         headers: getHeaders(),
       });
       if (!res.ok) throw new Error('Error deleting ruta');
+      return res.json();
+    },
+    getCheckpoints: async (rutaId: string) => {
+      const res = await fetch(`${BASE_URL}/tracking/rutas/${rutaId}/checkpoints`, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Error fetching checkpoints');
+      return res.json();
+    },
+    createCheckpoint: async (rutaId: string, data: any) => {
+      const res = await fetch(`${BASE_URL}/tracking/rutas/${rutaId}/checkpoints`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Error creating checkpoint');
+      return res.json();
+    },
+    deleteCheckpoint: async (id: string) => {
+      const res = await fetch(`${BASE_URL}/tracking/checkpoints/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      });
+      if (!res.ok) throw new Error('Error deleting checkpoint');
+      return res.json();
+    },
+    reachCheckpoint: async (data: { bus_id: string, checkpoint_id: string, encomienda_ids: string[] }) => {
+      const res = await fetch(`${BASE_URL}/tracking/checkpoint-reach`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Error updating checkpoint');
+      return res.json();
+    },
+    getTrackingHistory: async (code: string) => {
+      const res = await fetch(`${BASE_URL}/tracking/${code}/history`, { headers: getHeaders() });
+      if (res.status === 404) return [];
+      if (!res.ok) throw new Error('Error fetching tracking history');
       return res.json();
     }
   },

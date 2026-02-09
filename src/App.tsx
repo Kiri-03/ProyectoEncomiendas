@@ -18,7 +18,7 @@ import GuideView from "./pages/GuideView";
 import Tracking from "./pages/Tracking";
 import RouteManagement from "./pages/RouteManagement";
 import NotFound from "./pages/NotFound";
-
+import Conductor from "./pages/DriverTracking";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -31,12 +31,13 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/rastreo" element={<Tracking />} />
+            <Route path="/rastreo" element={<Tracking />} /> {/* Ya es pública */}
 
             <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
             <Route path="/encomiendas" element={<AuthGuard><EncomiendaManagement /></AuthGuard>} />
             <Route path="/encomiendas/nueva" element={<AuthGuard><CreateEncomienda /></AuthGuard>} />
             <Route path="/guia/:id" element={<AuthGuard><GuideView /></AuthGuard>} />
+              <Route path="/conductor" element={<AuthGuard><RoleGuard allowedRoles={['conductor']}><Conductor /></RoleGuard></AuthGuard>} />
 
             <Route path="/admin" element={<AuthGuard><RoleGuard allowedRoles={['administrador']}><AdminDashboard /></RoleGuard></AuthGuard>} />
             <Route path="/usuarios" element={<AuthGuard><RoleGuard allowedRoles={['administrador']}><UserManagement /></RoleGuard></AuthGuard>} />

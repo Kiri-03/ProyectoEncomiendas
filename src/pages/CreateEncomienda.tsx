@@ -96,7 +96,7 @@ const CreateEncomienda = () => {
         
         // Si se seleccionó bus, intentar despachar (opcional)
         if (formData.bus && response.id) {
-           // Aquí iría la lógica de despacho si el backend lo soporta en este flujo
+           await apiClient.encomiendas.update(response.id, { bus_id: formData.bus });
         }
 
         showSuccess(`Encomienda registrada: ${response.tracking_code}`);
@@ -112,6 +112,10 @@ const CreateEncomienda = () => {
   const updateField = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // Filtrar buses según el destino seleccionado
+  const selectedTerminal = terminals.find(t => t.nombre === formData.destino);
+  const filteredBuses = availableBuses.filter(bus => !selectedTerminal || bus.destino === selectedTerminal.ciudad);
 
   return (
     <Layout>
@@ -217,7 +221,7 @@ const CreateEncomienda = () => {
               <div className="space-y-4">
                 <Label>Buses con Salida Próxima *</Label>
                 <div className="space-y-3">
-                  {availableBuses.length > 0 ? availableBuses.map((bus) => (
+                  {filteredBuses.length > 0 ? filteredBuses.map((bus) => (
                     <div 
                       key={bus.id}
                       onClick={() => updateField('bus', bus.id)}
@@ -229,13 +233,13 @@ const CreateEncomienda = () => {
                         </div>
                         <div>
                           <p className="font-bold text-lg">DISCO {bus.numero_disco}</p>
-                          <p className="text-sm text-slate-500">Placa: {bus.placa} | Salida: Próxima</p>
+                          <p className="text-sm text-slate-500">Placa: {bus.placa} | Salida: {bus.hora_salida}</p>
                         </div>
                       </div>
                       {formData.bus === bus.id && <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs">✓</div>}
                     </div>
                   )) : (
-                    <p className="text-slate-500 text-center py-4">No hay buses disponibles en este momento.</p>
+                    <p className="text-slate-500 text-center py-4">No hay buses disponibles para el destino seleccionado.</p>
                   )}
                 </div>
               </div>

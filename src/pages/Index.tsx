@@ -16,6 +16,11 @@ const Index = () => {
           <Search className="w-4 h-4" /> Rastrear Encomienda
         </Button>
       </Link>
+      <Link to="/conductor">
+        <Button variant="ghost" className="gap-2 w-full justify-start md:justify-center text-slate-600 hover:text-primary">
+          <Bus className="w-4 h-4" /> App Conductor
+        </Button>
+      </Link>
       <Link to="/login">
         <Button className="rounded-full px-6 w-full">Acceso Personal</Button>
       </Link>

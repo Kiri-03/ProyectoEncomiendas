@@ -15,5 +15,6 @@ class Encomienda(Base):
     peso = Column(Float)
     tipo = Column(String)
     status = Column(String, default="en_bodega_origen")
+    bus_id = Column(String, nullable=True)
     subtotal = Column(Float)
     created_at = Column(DateTime, default=datetime.utcnow)

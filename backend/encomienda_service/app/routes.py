@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from .dependencies import get_async_session
@@ -7,6 +9,8 @@ from .models import Encomienda
 import uuid
 from datetime import datetime
 from typing import List
+from pydantic import BaseModel
+from typing import Optional
 
 router = APIRouter()
 
@@ -101,8 +105,41 @@ async def get_terminals(db: AsyncSession = Depends(get_async_session)):
 
 @router.get("/{tracking_code}", response_model=EncomiendaRead)
 async def get_encomienda(tracking_code: str, db: AsyncSession = Depends(get_async_session)):
-    result = await db.execute(select(Encomienda).where(Encomienda.tracking_code == tracking_code))
-    encomienda = result.scalar_one_or_none()
+    try:
+        result = await db.execute(select(Encomienda).where(Encomienda.tracking_code == tracking_code))
+        encomienda = result.scalar_one_or_none()
+        if not encomienda:
+            raise HTTPException(status_code=404, detail="Encomienda no encontrada")
+        return encomienda
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=f"Error de base de datos: {str(e)}")
+
+
+# --- Agrega este esquema ---
+class EncomiendaPatchSchema(BaseModel):
+    bus_id: Optional[str] = None
+    status: Optional[str] = None
+
+# --- Agrega este endpoint al router ---
+@router.patch("/{encomienda_id}")
+async def update_encomienda_partial(
+    encomienda_id: str, 
+    data: EncomiendaPatchSchema, 
+    db: AsyncSession = Depends(get_async_session)
+):
+    # Buscar la encomienda
+    result = await db.execute(select(Encomienda).where(Encomienda.id == encomienda_id))
+    encomienda = result.scalars().first()
+    
     if not encomienda:
         raise HTTPException(status_code=404, detail="Encomienda no encontrada")
+    
+    # Actualizar campos si vienen en el body
+    if data.bus_id is not None:
+        encomienda.bus_id = data.bus_id
+    if data.status is not None:
+        encomienda.status = data.status
+        
+    await db.commit()
+    await db.refresh(encomienda)
     return encomienda

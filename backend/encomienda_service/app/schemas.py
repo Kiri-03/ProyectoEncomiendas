@@ -16,6 +16,7 @@ class EncomiendaRead(EncomiendaBase):
     id: str
     tracking_code: str
     status: str
+    bus_id: Optional[str] = None
     subtotal: float
     created_at: Optional[datetime] = None
 
