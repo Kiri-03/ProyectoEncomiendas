@@ -113,6 +113,8 @@ async def get_terminals(db: AsyncSession = Depends(get_async_session)):
         {"id": "t2", "nombre": "Terminal Terrestre Guayaquil", "ciudad": "Guayaquil"},
         {"id": "t3", "nombre": "Terminal Terrestre Cuenca", "ciudad": "Cuenca"},
         {"id": "t4", "nombre": "Terminal Terrestre Manta", "ciudad": "Manta"},
+        {"id": "t5", "nombre": "Terminal Terrestre Latacunga", "ciudad": "Latacunga"},
+        {"id": "t6", "nombre": "Terminal Terrestre La maná", "ciudad": "La maná"},
     ]
 
 @router.get("/{tracking_code}", response_model=EncomiendaRead)
