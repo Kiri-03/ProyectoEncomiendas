@@ -100,7 +100,7 @@ const CreateEncomienda = () => {
         }
 
         showSuccess(`Encomienda registrada: ${response.tracking_code}`);
-        navigate('/dashboard');
+        navigate(`/guia/${response.tracking_code}`);
       } catch (err) {
         showError("Error al registrar la encomienda en el servidor.");
       }

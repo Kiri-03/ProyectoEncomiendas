@@ -25,20 +25,14 @@ import {
 import { apiClient } from '@/lib/api-client';
 import { showError } from '@/utils/toast';
 
-const OFFICE_PERFORMANCE = [
-  { name: 'Lima Central', envios: 1200, ingresos: 15000 },
-  { name: 'Trujillo Norte', envios: 850, ingresos: 9200 },
-  { name: 'Arequipa Sur', envios: 600, ingresos: 7800 },
-  { name: 'Cusco', envios: 450, ingresos: 5400 },
-];
-
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
     revenue: 0,
     total_shipments: 0,
     active_shipments: 0,
     delivered_shipments: 0,
-    revenue_chart: []
+    revenue_chart: [],
+    office_performance: []
   });
 
   useEffect(() => {
@@ -158,7 +152,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={OFFICE_PERFORMANCE}>
+              <BarChart data={stats.office_performance}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />

@@ -4,7 +4,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Truck, Search, Bus, Menu, ArrowRight, Package, MapPin, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { MadeWithDyad } from '@/components/made-with-dyad';
+
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Index = () => {
@@ -117,7 +117,7 @@ const Index = () => {
       <footer className="bg-slate-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-6">
           <p className="text-slate-400 text-sm">© 2024 Cooperativa TransLog. Todos los derechos reservados.</p>
-          <MadeWithDyad />
+          
         </div>
       </footer>
     </div>

@@ -69,28 +69,40 @@ async def get_dashboard_stats(db: AsyncSession = Depends(get_async_session)):
     result = await db.execute(select(Encomienda))
     encomiendas = result.scalars().all()
     
-    total_revenue = sum(e.subtotal for e in encomiendas)
+    total_revenue = sum((e.subtotal or 0) for e in encomiendas)
     total_shipments = len(encomiendas)
     active_shipments = sum(1 for e in encomiendas if e.status == "en_transito")
     delivered_shipments = sum(1 for e in encomiendas if e.status == "entregado")
     
-    # Datos simulados para gráficos (se podrían calcular real con fechas)
-    revenue_data = [
-        {"name": "Lun", "total": total_revenue * 0.1},
-        {"name": "Mar", "total": total_revenue * 0.15},
-        {"name": "Mie", "total": total_revenue * 0.12},
-        {"name": "Jue", "total": total_revenue * 0.2},
-        {"name": "Vie", "total": total_revenue * 0.25},
-        {"name": "Sab", "total": total_revenue * 0.18},
-        {"name": "Dom", "total": 0},
-    ]
+    # 1. Gráfico de Ingresos por día de la semana (Real)
+    days_map = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"]
+    revenue_by_day = {d: 0.0 for d in days_map}
+    
+    for e in encomiendas:
+        if e.created_at:
+            day_idx = int(e.created_at.strftime("%w")) # 0=Dom, 6=Sab
+            revenue_by_day[days_map[day_idx]] += float(e.subtotal or 0)
+    
+    revenue_chart = [{"name": d, "total": revenue_by_day[d]} for d in days_map]
+
+    # 2. Rendimiento por Oficina/Destino (Real)
+    performance_map = {}
+    for e in encomiendas:
+        dest = e.destino_direccion or "Sin Destino"
+        if dest not in performance_map:
+            performance_map[dest] = {"name": dest, "envios": 0, "ingresos": 0.0}
+        performance_map[dest]["envios"] += 1
+        performance_map[dest]["ingresos"] += float(e.subtotal or 0)
+
+    office_performance = list(performance_map.values())
 
     return {
         "revenue": total_revenue,
         "total_shipments": total_shipments,
         "active_shipments": active_shipments,
         "delivered_shipments": delivered_shipments,
-        "revenue_chart": revenue_data
+        "revenue_chart": revenue_chart,
+        "office_performance": office_performance
     }
 
 @router.get("/terminals")

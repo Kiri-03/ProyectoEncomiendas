@@ -19,7 +19,7 @@ const GuideView = () => {
     const fetchGuide = async () => {
       try {
         if (!id) return;
-        const data = await apiClient.encomiendas.getOne(id);
+        const data = await apiClient.encomiendas.getByTracking(id);
         setGuide(data);
       } catch (err) {
         showError("No tienes permiso para ver esta guía o no existe.");
@@ -37,12 +37,12 @@ const GuideView = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 print:hidden">
           <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
             <ArrowLeft className="w-4 h-4" /> Volver
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm"><Printer className="w-4 h-4 mr-2" /> Imprimir</Button>
+            <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="w-4 h-4 mr-2" /> Imprimir</Button>
             <Button size="sm"><Download className="w-4 h-4 mr-2" /> PDF</Button>
           </div>
         </div>
@@ -64,19 +64,18 @@ const GuideView = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
                 <h4 className="font-bold text-slate-400 uppercase text-[10px] mb-2">Remitente</h4>
-                <p className="font-semibold">{guide.sender_name || 'Cliente General'}</p>
-                <p className="text-sm text-slate-600">CI: {guide.sender_dni || 'N/A'}</p>
+                <p className="font-semibold">{guide.remitente_nombre || 'Cliente General'}</p>
               </div>
               <div>
                 <h4 className="font-bold text-slate-400 uppercase text-[10px] mb-2">Destinatario</h4>
-                <p className="font-semibold">{guide.receiver_name}</p>
-                <p className="text-sm text-slate-600">Telf: {guide.receiver_phone}</p>
+                <p className="font-semibold">{guide.destinatario_nombre}</p>
+                <p className="text-sm text-slate-600">{guide.destino_direccion}</p>
               </div>
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
                 <h4 className="font-bold text-primary uppercase text-[10px] mb-2 flex items-center gap-1">
                   <Bus className="w-3 h-3" /> Transporte
                 </h4>
-                <p className="font-bold text-lg">{guide.bus_id || 'Por asignar'}</p>
+                <p className="font-bold text-lg">{guide.bus_id ? `Unidad Asignada` : 'Por asignar'}</p>
               </div>
             </div>
 
@@ -90,7 +89,10 @@ const GuideView = () => {
                 </thead>
                 <tbody>
                   <tr className="border-b">
-                    <td className="px-4 py-2">Servicio de Encomienda - {guide.status}</td>
+                    <td className="px-4 py-2">
+                      <span className="font-bold block uppercase">{guide.tipo}</span>
+                      <span className="text-xs text-slate-500">Peso: {guide.peso} kg - Estado: {guide.status.replace(/_/g, ' ')}</span>
+                    </td>
                     <td className="px-4 py-2 text-right">${guide.subtotal?.toFixed(2)}</td>
                   </tr>
                 </tbody>

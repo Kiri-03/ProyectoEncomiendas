@@ -16,4 +16,4 @@
 ## Variables de entorno
 - Backend: Usa pydantic BaseSettings para cargar variables sensibles (ver ejemplo en `encomienda_service/app/database.py`).
 - Frontend: Usa archivos `.env` y accede a variables con `import.meta.env` (ver ejemplo en `src/lib/api-client.ts`).
-# Welcome to your Dyad app
+
